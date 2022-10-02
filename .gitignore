@@ -1,0 +1,23 @@
+# Visual Studio Code folder
+.vscode/
+
+# C++ build folder
+beam_handling_cpp/build/
+
+# Catkin workspace files
+beam_handling_ws/build/
+beam_handling_ws/devel/
+beam_handling_ws/logs/
+beam_handling_ws/.catkin_tools/
+
+# Python
+# Byte-compiled / optimized / DLL files
+beam_handling_py/__pycache__/
+beam_handling_py/beam_handling_py/__pycache__/
+
+# Distribution / packaging
+beam_handling_py/*.egg-info/
+
+# Saved trajectories
+js_opt_traj_4rviz.csv
+js_opt_traj.csv

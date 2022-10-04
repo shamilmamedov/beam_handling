@@ -141,5 +141,5 @@ class PandaData1khz():
 
 
 if __name__ == "__main__":
-    path_to_log = 'log/param_estimation_ICRA/ocp_rotX_30deg_0.43s_1.csv'
+    path_to_log = 'data/param_estimation_ICRA/ocp_rotX_30deg_0.43s_1.csv'
     d = PandaData1khz(path_to_log)

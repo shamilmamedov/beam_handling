@@ -15,6 +15,8 @@ import beam_handling_py.plotting as plotting
 # plt.style.use(['science','ieee'])
 
 def plot_tau(data, labels, frame: str = 'base', xlim=None, save_figure: bool = False):
+    """ Given an instance of the PandaData1khz plots a compoenet of the wrench
+    """
     assert (frame in ['base', 'local'])
 
     sampling_rate = int(1/(data[0].t[1] - data[0].t[0]))
@@ -49,6 +51,9 @@ def plot_tau(data, labels, frame: str = 'base', xlim=None, save_figure: bool = F
 
 
 def plot_tau_all_tasks(data, xlim, save_figure: bool = False):
+    """ Given a list of PandaData1khz objects plots a component 
+    of the wrench for all the objects from the list
+    """
     data_xdown, data_zx, data_3D = data
 
     sampling_rate = 1000
@@ -87,6 +92,7 @@ def plot_tau_all_tasks(data, xlim, save_figure: bool = False):
 def integrate_residual_vibrations(data: PandaData1khz, t_exec: float, signal: str = 'tau',
                                   frame: str = 'base', visualize: bool = False):
     """ Integrates the residual vibrations
+
     :parameter data: logged data correspnding to a trajectory
     :parameter t_exec: trajectory execution time (active phase of trajectory)
     """
@@ -138,7 +144,7 @@ def analyze_OCP_vs_ZV_shapers(task_names, frame: str = 'local', save_figure: boo
     """
     # Define path to folders with data
     n = len(task_names)
-    df = 'log/vibration_suppression_ICRA/'
+    df = 'data/vibration_suppression_ICRA/'
 
     if 'T1' in task_names:
         ocp_Xdown_44 = PandaData1khz(df + 'aOCP_T1_0.44s.csv')
@@ -155,7 +161,8 @@ def analyze_OCP_vs_ZV_shapers(task_names, frame: str = 'local', save_figure: boo
 
         if n == 1:
             plotting.latexify()
-            plot_tau(data_xdown, labels, frame, xlim=[0, 2], save_figure=save_figure)
+            plot_tau(data_xdown, labels, frame, xlim=[
+                     0, 2], save_figure=save_figure)
             data = data_xdown
 
     if 'T2' in task_names:
@@ -172,7 +179,8 @@ def analyze_OCP_vs_ZV_shapers(task_names, frame: str = 'local', save_figure: boo
 
         if n == 1:
             plotting.latexify()
-            plot_tau(data_zx, labels, frame, xlim=[0, 2], save_figure=save_figure)
+            plot_tau(data_zx, labels, frame, xlim=[
+                     0, 2], save_figure=save_figure)
             data = data_zx
 
     if 'T3' in task_names:
@@ -189,22 +197,22 @@ def analyze_OCP_vs_ZV_shapers(task_names, frame: str = 'local', save_figure: boo
 
         if n == 1:
             plotting.latexify()
-            plot_tau(data_3D, labels, frame, xlim=[0, 2.5], save_figure=save_figure)
+            plot_tau(data_3D, labels, frame, xlim=[
+                     0, 2.5], save_figure=save_figure)
             data = data_3D
 
     if n == 3:
         xlim = [0, 2]
         plotting.latexify(fig_width=7.16, fig_height=2)
-        plot_tau_all_tasks([data_xdown, data_zx, data_3D], xlim, save_figure=save_figure)
+        plot_tau_all_tasks([data_xdown, data_zx, data_3D],
+                           xlim, save_figure=save_figure)
 
     if n == 1:
         vibr_ingts = np.array([integrate_residual_vibrations(d, t_exec, frame=frame)
-                            for d, t_exec in zip(data, t_execs)])
+                               for d, t_exec in zip(data, t_execs)])
         vibr_ingts = vibr_ingts * 100 / vibr_ingts[0]
         print(pd.DataFrame({'traj': labels, 'vibr_intg': vibr_ingts}))
 
-    
 
 if __name__ == "__main__":
-    # analyze_OCP_vs_ZV_shapers_constr_orient()
     analyze_OCP_vs_ZV_shapers(['T1'], save_figure=False)

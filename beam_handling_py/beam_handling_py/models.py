@@ -93,7 +93,7 @@ def get_beam_params(type: str = "estimated") -> np.ndarray:
     # different from Z using L as an additional parameter
 
     if type == "estimated":
-        wn, zeta, L = 18.42, 0.004, 0.34
+        wn, zeta, L = 18.57, 0.005, 0.35
 
     elif type == "analytical":
         # For damping I choose the lowest value
@@ -223,8 +223,8 @@ if __name__ == "__main__":
     print(setup_model)
 
     p = np.array([18.42, 0.005, 0.34])
-    q = np.array(
-        [[-np.pi/2, -np.pi/6, 0., -2*np.pi/3, 0., np.pi/2, np.pi/4]]).T
+    q = np.array([[-np.pi/2, -np.pi/6, 0., 
+                   -2*np.pi/3, 0., np.pi/2, np.pi/4]]).T
     R = symkin.eval_Rb(q)
     theta_eq = beam_rest_position(R, p)
     print(f"Equilibrium positionm = {theta_eq:.4f}")

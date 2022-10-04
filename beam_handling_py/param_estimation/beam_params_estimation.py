@@ -202,7 +202,7 @@ def load_param_estimation_data(dataset_description, resample=True):
     n_exp = dataset_description['n_exper']
 
     # Construc path to dataset files
-    log_dir = 'log/param_estimation_ICRA'
+    log_dir = 'data/param_estimation_ICRA'
 
     logs = [f'ocp_{axis}_{amplt}_{tf}_{k+1}.csv' for k in range(n_exp)]
     path_to_logs = [os.path.join(log_dir, log) for log in logs]

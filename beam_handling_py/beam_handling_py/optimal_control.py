@@ -37,7 +37,7 @@ class OCPParameters():
         self.suppress_vibrations = suppress_vibrations
 
         # Structure of the problem
-        self.diagonalize_jacobian = False
+        self.diagonalize_jacobian = True
 
         # Weighting functions of the cost function
         self.rho = rho
@@ -104,8 +104,7 @@ class OptimalControlProblem():
         else:
             self.formulate()
 
-        # plt.spy(cs.jacobian(self.__opti.g, self.__opti.x).sparsity())
-        # plt.show()
+        self.plot_jacobian_structure()
 
     def formulate(self):
         """ Formulates OCP using Opti stack
@@ -179,10 +178,6 @@ class OptimalControlProblem():
         """ Formulate the problem in a way that the Jacobian
         has a diagonal strucure
         """
-        # Check for non implemented features
-        assert self.params.constrain_orientation == False
-        assert self.ndq_arm == 7
-
         # Set opti environment
         self.__opti = cs.Opti()
 
@@ -194,7 +189,6 @@ class OptimalControlProblem():
         ts = self.params.ts
         w = self.__opti.variable(nx*(N+1) + nu*N)
         self.__p = self.__opti.parameter(self.model.np, 1)
-        self.__d = self.__opti.parameter(self.model.nd, self.params.N)
 
         # Set the indices of the state and control variables in the w
         x_idx = np.zeros((nx, N+1), dtype=int)
@@ -220,18 +214,18 @@ class OptimalControlProblem():
         self.__opti.subject_to(u[:, 0] == 0.)
         for k in range(N):
             # Dynamics (multiple shooting constraint)
-            x_next = self.F_rk4(x[:, k], u[:, k], self.__p, self.__d[:, k], ts)
+            x_next = self.F_rk4(x[:, k], u[:, k], self.__p, ts)
             self.__opti.subject_to(x_next == x[:, k+1])
 
             # Control and state bounds
             qk = x[:self.nq_arm, k]
             dqk = x[self.nq:self.nq+self.nq_arm, k]
-            self.__opti.subject_to(
-                self.__opti.bounded(-self.params.u_max, u[:, k], self.params.u_max))
-            self.__opti.subject_to(self.__opti.bounded(
-                self.params.q_min, qk, self.params.q_max))
-            self.__opti.subject_to(
-                self.__opti.bounded(-self.params.dq_max, dqk, self.params.dq_max))
+            self.__opti.subject_to(self.__opti.bounded(-self.params.u_max, 
+                                   u[:, k], self.params.u_max))
+            self.__opti.subject_to(self.__opti.bounded(self.params.q_min, 
+                                   qk, self.params.q_max))
+            self.__opti.subject_to(self.__opti.bounded(-self.params.dq_max, 
+                                   dqk, self.params.dq_max))
 
             # Constraints on the rate of change of control effort
             if k > 0:
@@ -240,15 +234,15 @@ class OptimalControlProblem():
 
         # Final boundary constraints
         # EE position and orientation constraint at final point
-        pee_tf = self.symkin.eval_pb(x[:self.nq_arm, -1])
-        self.__opti.subject_to(pee_tf == self.pee_tf)
+        pb_tf = self.symkin.eval_pb(x[:self.nq_arm, -1])
+        self.__opti.subject_to(pb_tf == self.pb_tf)
         self.__opti.subject_to(self.rot_err(x[:self.nq_arm, -1]) == 0.)
 
         # Panda joint velocity contraint
         self.__opti.subject_to(x[self.nq:self.nq+self.ndq_arm, -1] == 0.)
 
         # Beam constraints
-        if self.beam_constraint_type == "hard":
+        if self.params.suppress_vibrations:
             self.__opti.subject_to(x[self.nq_arm:self.nq, -1] == self.theta_tf)
             self.__opti.subject_to(x[self.nq+self.ndq_arm:, -1] == 0.)
 
@@ -260,10 +254,10 @@ class OptimalControlProblem():
         objective = 0
         for k in range(N):
             objective += (x[:, k] - self.x_t0).T @ self.params.Q @ (x[:, k] - self.x_t0) + \
-                u[:, k].T @ self.params.R @ u[:, k]
+                         u[:, k].T @ self.params.R @ u[:, k]
             if k > 0:
                 objective += self.params.rho * \
-                    (u[:, k] - u[:, k-1]).T @ (u[:, k] - u[:, k-1])
+                             (u[:, k] - u[:, k-1]).T @ (u[:, k] - u[:, k-1])
 
         # Terminal cost
         self.__opti.minimize(objective)
@@ -284,10 +278,10 @@ class OptimalControlProblem():
         if self.params.diagonalize_jacobian:
             # Parse states and inputs into a decision vector
             w0 = np.zeros((self.model.nx*(self.params.N+1) +
-                          self.model.nu*self.params.N, 1))
+                           self.model.nu*self.params.N, 1))
             for k in range(0, self.params.N+1):
                 w0[self.x_from_w[:, k], 0] = x0[:, [k]].T
-                if k < N:
+                if k < self.params.N:
                     w0[self.u_from_w[:, k], 0] = u0[:, [k]].T
             # Iniitalize decision variables
             self.__opti.set_initial(self.__w, w0)
@@ -361,6 +355,9 @@ class OptimalControlProblem():
         np.savetxt('js_opt_traj.csv', dq_ref,  fmt='%.20f', delimiter=',')
         np.savetxt('js_opt_traj_4rviz.csv', q_ref, delimiter=',')
 
+    def plot_jacobian_structure(self):
+        plt.spy(cs.jacobian(self.__opti.g, self.__opti.x).sparsity())
+        plt.show()
 
     def visualize_solution(self):
         # Options for plotting

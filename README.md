@@ -21,7 +21,7 @@ We formulate point-to-point trajectory design as an optimization problem (OCP). 
 
 Given the model and the task, we formulate the OCP as follows:
 
-<img src="media/ocp.png"  width="75%">
+<img src="media/ocp.png"  width="40%">
 
 The problem is described in detail in the paper. 
 

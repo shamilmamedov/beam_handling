@@ -17,7 +17,7 @@ https://user-images.githubusercontent.com/59015432/197711947-49427a9d-6a3e-4290-
 ## Point-to-point trajectory optimization
 We formulate point-to-point trajectory design as an optimization problem (OCP). OCP requires a model of the system. Under some assumption we model the manipulator as a double integrator. The beam, we approximate as a simple pendulum attached to the end-effector of the robot via a passive compliant revolute joint. 
 
-![Beam approximation](media/lumping.svg)
+![lumping](https://user-images.githubusercontent.com/59015432/202658563-281408b6-4030-4182-b3dd-e993044a7755.svg)
 
 Given the model and the task, we formulate the OCP as follows:
 
